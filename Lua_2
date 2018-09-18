@@ -1,0 +1,24 @@
+编写模块的方法：
+创建一个table，并将所有需要导出的函数放入其中，最后返回这个table，例子：
+
+local complex = {}
+
+funtion complex:new()
+
+
+end
+
+
+funtion complex:add()
+
+
+end
+
+funtion complex:sub()
+
+
+end
+
+
+
+return complex
