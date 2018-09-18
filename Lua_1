@@ -1,3 +1,31 @@
 Lua新鸟上路之require学习要点
 1，require 是lua用来加载模块的高层函数
+2，使用方式：require(模块名)即可，返回是包含模块函数的table，即是返回一个table，此table包含模块中定义的函数，
+3，多次使用require相同的模块时，只在第一次require时加载，以后调用只会返回已经加载过了的值
 
+require内部的实现：
+
+function require(name)
+  if not package.loaded[name] then  --判断是否已经加载过
+      local loader = findloader(name)  --如果没加载过，在preload去查找是否有函数，有作为加载器
+      if loader == nil then --加载器为空，说明preload(预加载)中找不到对应模块，也就是不存在相应模块,则返回错误
+        error("unable to load module"..name)
+      end
+      package.loaded[name] = true --如果上面加载器不为空，则设置为已加载过
+      local res = loader[name] --从加载器中获取模块
+      if res ~= nil then --模块不为空则将模块存储到package.loaded中,以备后面再次require时直接返回
+         package.loaded[name] = res
+      end
+  end
+  return package.loaded[name]
+end
+
+思路即是：
+
+先判断：1 package.loaded中是否有该模块，如果有，则直接返回package.loaded[name] 该模块
+       2 如果不存在该模块，require就尝试着为该模块查找一个加载器（loader），会先在package.preload中查询该模块名，如果查找到了一个函数，则用此函数作为
+       该模块的加载器，通过preload就有了一种通用的方法来处理
+       3 如果require为该模块找到了文件则调用,loadfile(lua文件调用loadfile),或者loadlib(c文件)
+       4 然后要把package.loaded 置为true，标记为加载过了
+       5 更新package.loaded 为找到的模块
+       6 返回该模块值
