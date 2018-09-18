@@ -2,6 +2,8 @@ Lua新鸟上路之require学习要点
 1，require 是lua用来加载模块的高层函数
 2，使用方式：require(模块名)即可，返回是包含模块函数的table，即是返回一个table，此table包含模块中定义的函数，
 3，多次使用require相同的模块时，只在第一次require时加载，以后调用只会返回已经加载过了的值
+4，require 用于搜索Lua文件的路径存放在变量package.path中，当Lua启动后，便以环境变量LUA_PATH的值来初始化这个变量，如果没有找到该环境变量，则使用一个
+   编译时定义的默认路径来初始化。同理找C文件时会从变量package.cpath（相对于package.path）来获取路径，而这个变量则是通过环境变量LUA_CPATH来初始化。
 
 require内部的实现：
 
