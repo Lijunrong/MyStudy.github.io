@@ -1,0 +1,29 @@
+module函数
+
+module函数的基本使用:
+module(...,package.seeall)
+
+function play()
+
+
+end
+
+function goto()
+
+
+end
+
+
+解释：
+
+module函数的作用相当于以下代码块：
+local modname=...  --接收从require传入的模块名字
+local M = {}  --局部table，用以保存定义的函数
+_G[modname] = M --设置为全局变量,如此，修改模块名称时只需要修改其文件名
+package.loaded[modname] = M --此句代码的作用是省略末尾的return M 语句
+setfenv(1,M)  --设置当前的环境为M，则定义函数时可以省去前缀
+
+package.seeall函数的所用:
+相当于setmetatable(M,{__index = _G}) 给M设置原表，此原表中修改__index = _G，则当搜索M中不存在的key，如math时，就会去查找_G，此举的作用是M继承_G中
+的全局变量
+
