@@ -1,0 +1,44 @@
+模块编写方法：
+
+1-模块基本编写方法：
+local modname = ...
+local M = {}
+_G[modname] = M --使用了这句,如果需要重命名一个模块，只需要重命名并且定义它的文件就可以了
+package.loaded[modname] = M --使用了这句，就可以省去末尾的return M 语句
+
+function M.play()
+
+
+end
+
+调用：local game = require("模块名")
+game.play()
+
+
+2-模块编写改进--使用环境
+
+local modname = ...
+local M = {}
+_G[modname] = M
+package.loaded[modname] = M
+setfenv(1,M) --把当前环境设置为M，如此定义函数时可以省去前缀 M 如：
+
+function add() -- 此处相当于function M.add()
+
+
+end
+
+
+3-模块编写改进--使用module函数
+
+module(...,package.seeall)
+
+function play()
+
+end
+
+function goto()
+
+end
+
+其中package.seeall = setmetatable(M,{__index = _G}) 
