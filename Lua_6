@@ -1,0 +1,20 @@
+子模块与包
+
+Lua支持层级性的模块名，可以用一个点来分隔名称中的层级。假设，一个模块名为mod.sub，那么他就是mod的一个子模块，因此，可以认为模块sub会将其所有值都定义在
+table mod.sub中，也就是一个存储在table mod中且key值为sub的table，一个“包（Package）” 就是一个完整的模块树木，它是lua中的发行单位
+
+当require一个模块mod.sub时，require会用原始的模块名"mod.sub"作为key来查询table package.loaded和package.preload，其中，模块名中的点在搜索中毫无意义
+
+然而，在搜索一个定义子模块的文件时，require会将点转换为另一个字符，通常就是系统的目录分隔符，例如，假设路径为：
+./?.lua;/usr/local/lua/?.lua:/usr/local/lua/?/init.lua,并且目录分隔符为“/”，那么调用require"a.b" 就会尝试打开以下文件：
+./a/b.lua
+/usr/local/lua/a/b.lua
+/usr/local/lua/a/b/init.lua
+通过这样的加载策略，就可以将一个包中的所有模块组织到一个目录中
+
+C函数名中不能包含点，因此require会将点转换为下划线。
+
+module函数也为子模块提供了显示的支持。
+
+从Lua的观点看，同一个包中的子模块除了它们的环境table是嵌套的，它们之间并没有显示的关联性。require模块a并不会自动加载它的任何子模块。同样，require子模块
+a.b 也并不会自动加载a。
