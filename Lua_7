@@ -1,0 +1,42 @@
+Lua 之继承
+
+由于类也是对象，它们也可以从其他类获得方法。这种行为就是一种继承。
+
+假设有一个基类Account:
+
+local Account = {balance = 0}
+
+function Acount:new(o)
+  o = o or {}
+  setmetatable(o,self)
+  self.__index = self
+  return o
+end
+function Acount:goto()
+
+end
+
+return Acount
+
+假设有一个类SpecialAccount继承Account,则先创建一个空类，继承Account，如：
+
+local SpecialAccount = Account:new()
+此时，SpecialAccount 继承了Account的所有方法，也是Accont的一个对象，或者称为子类，然后只需实例化子类即可：
+
+local s = SpecialAccount:new({})
+解释：SpecialAccount 继承了Account 的new方法，但此时传入new的self指针是SpecialAccount,也就是说s的原表是SpecialAccount，s是继承自SpecialAccount
+而SpecialAccount又继承自Account，当执行以下语句：s:goto()时，lua在s中找不到goto字段，此时就会查找SpecialAccount，而在SpecialAccount中又找不到该字段，
+，就查找Account table，最终在Account table中找到了该字段。
+
+SpecialAccount不仅继承了Account 中的所有方法，还可以重写基类中的方法，如：
+function SpecialAccount:goto()
+  print("I Fuck You")
+end
+此时执行语句s:goto()时，在SpecialAccount中找到了字段goto，就不会再去查找Account了，而是直接执行SpecialAccount中的goto方法了。
+
+通过以上的方法，即可简单实现了类的继承。
+
+同时，如果只有一个对象拥有某个特殊的行为，也可直接修改该对象的这种行为，如：
+function s:goto()
+  print("I Fuck Him")
+end
