@@ -1,0 +1,38 @@
+Lua之面向对象编程
+
+Lua中的table就是一种对象：1 table与对象一样可以拥有状态
+                        2 table与对象一样拥有一个独立于其值的标识（一个self）。例如，两个具有相同值的对象（table）是两个不同的对象
+                        3 table与对象一样拥有独立的生命周期
+
+
+
+类：
+
+Lua没有类的概念，但是可用原型来模拟类。代码如下：
+创建银行账号的实例：
+
+local Acount = {}
+function Acount:new(o)
+  o = o or {}
+  setmetatable(o,self)--使用Acount table自身作为原表
+  self.__index = self
+  return o --一定要返回对象
+end
+function Acount:desposit()
+
+end
+
+return Acount --返回Acount table 即类
+
+采用冒号，可以隐式地传入self指针，setmetable(o,self)--传入self，让Acount table自身作为原表，则无须创建一个额外的table作为账户对象的元表。
+self.__index = self,作用是，当对象找不到某个操作时，就会查找self，而self就是Acount table，也就是说，会查询Acount table，Acount table即为一个类
+
+
+调用：
+a = Acount:new({})
+a:desposit() --使用冒号，可以隐式地传入self，
+
+解释：
+执行Acount:new()方法时，隐式地传入了self指针作为原表，而当调用a:desposit(100)方法时，就是调用了a:desposit(a,100)，当Lua在table a 中无法找到desposit
+条目时，它会进一步搜索元表的__index，结果发现原表的__index 是原表，最终的调用情况为：
+getmetatable(a).__index.desposit(a,100),而getmetatable(a)即为Acount，Acount.__index 还是Acount，所以该语句等同于Acount.desposit(a,100)
