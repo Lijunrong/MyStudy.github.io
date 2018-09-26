@@ -1,0 +1,18 @@
+弱引用table
+
+
+弱引用table是这样的一种机制：告诉Lua一个引用不应该阻碍一个对象的回收，“弱引用”就是会被垃圾回收器忽视的对象引用。如果一个对象的所有引用都是弱引用，那么
+Lua就可以回收这个对象了。Lua用弱引用table来实现弱引用，一个弱引用table就是含有弱引用条目的table，如果一个对象只被一个弱引用table引用，那么Lua最终会回收
+这个对象
+
+Lua实现弱引用table的方式：
+通过其元表的__mode字段来决定，当__mode='k'时，那么key是弱引用，若为'v',则value为弱引用，实例：
+
+a = {}
+b = {__mode = 'k'} -- key值为弱引用
+setmetatable(a,b)
+
+
+a = {}
+b =｛__mode = 'v'｝ --value值为弱引用
+setmetatable(a,b)
