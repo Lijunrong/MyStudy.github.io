@@ -1,0 +1,283 @@
+第一次搞热更新，这里记录一下全过程，方面以后查看。 
+    原理：每次登陆游戏利用cocos的assetManager从服务器拉去当前最新的两个文件。 一个是version.mainifest,一个project.mainifest. 这两个文件都是xml的描述文件。一个包含了版本信息，第二个包含了游戏所有资源的MD5码。首先通过version文件对比本地的版本是否相同，如果不相同，再通过跟本地的project文件对比MD5码来判断哪些文件需要重新下载，替换资源。 
+    步骤： 
+    1.首先要进行测试先下载一个HFS服务器，这个服务器方便易学。每次将最新项目全部拖进服务器中，用GeneateManifest.py文件自动生成version 和 project文件。 
+    2.编写Geneate文件。 
+      这个文件是一个python。目的是生成对应的version和project文件。project文件可以帮你给每个资源生成独一无二的MD5码，相当于每个资源的标记。下面是一段python文件的代码，非常简单。
+
+#!/usr/bin/env python
+#coding:utf-8
+import os
+import json
+import hashlib
+import subprocess
+
+
+assetsDir = {
+    "searchDir" : ["src", "res"],
+    "ignorDir" : ["cocos", "obj","version"]
+}
+
+versionConfigFile = "res/config/version_info.json"  #版本信息的配置文件路径
+
+versionManifestPath = "res/version/version.manifest"    #由此脚本生成的version.manifest文件路径
+
+projectManifestPath = "res/version/project.manifest"    #由此脚本生成的project.manifest文件路径
+
+
+class SearchFile:
+    def __init__(self):
+        self.fileList = []
+
+        for k in assetsDir:
+            if (k == "searchDir"):
+                for searchdire in assetsDir[k]:                 
+                    self.recursiveDir(searchdire)
+
+    def recursiveDir(self, srcPath):
+        ''' 递归指定目录下的所有文件'''
+        dirList = []    #所有文件夹  
+
+        files = os.listdir(srcPath) #返回指定目录下的所有文件，及目录（不含子目录）
+
+        for f in files:         
+            #目录的处理
+            if (os.path.isdir(srcPath + '/' + f)):              
+                if (f[0] == '.' or (f in assetsDir["ignorDir"])):
+                    #排除隐藏文件夹和忽略的目录
+                    pass
+                else:
+                    #添加非需要的文件夹                                  
+                    dirList.append(f)
+
+            #文件的处理
+            elif (os.path.isfile(srcPath + '/' + f)):               
+                self.fileList.append(srcPath + '/' + f) #添加文件
+
+        #遍历所有子目录,并递归
+        for dire in dirList:        
+            #递归目录下的文件
+            self.recursiveDir(srcPath + '/' + dire)
+
+    def getAllFile(self):
+        ''' get all file path'''
+        return tuple(self.fileList)
+
+def GetSvnCurrentVersion(): 
+    popen = subprocess.Popen(['svn', 'info'], stdout = subprocess.PIPE)    
+    while True:
+        next_line = popen.stdout.readline()         
+        if next_line == '' and popen.poll() != None:
+            break
+
+        valList = next_line.split(':')      
+        if len(valList)<2:
+            continue
+        valList[0] = valList[0].strip().lstrip().rstrip(' ')
+        valList[1] = valList[1].strip().lstrip().rstrip(' ')
+
+        if(valList[0]=="Revision"):
+            return valList[1]
+    return ""
+
+
+def CalcMD5(filepath):
+    """generate a md5 code by a file path"""
+    with open(filepath,'rb') as f:
+        md5obj = hashlib.md5()
+        md5obj.update(f.read())
+        return md5obj.hexdigest()
+
+
+def getVersionInfo():
+    '''get version config data'''
+    configFile = open(versionConfigFile,"r")
+    json_data = json.load(configFile)
+    configFile.close()
+    json_data["version"] = json_data["version"] + '.' + str(GetSvnCurrentVersion())
+    return json_data
+
+
+def GenerateversionManifestPath():
+    ''' 生成大版本的version.manifest'''
+    json_str = json.dumps(getVersionInfo(), indent = 2)
+    fo = open(versionManifestPath,"w")  
+    fo.write(json_str)  
+    fo.close()
+
+
+def GenerateprojectManifestPath():
+    searchfile = SearchFile()
+    fileList = list(searchfile.getAllFile())
+    project_str = {}
+    project_str.update(getVersionInfo())
+    dataDic = {}
+    for f in fileList:      
+        dataDic[f] = {"md5" : CalcMD5(f)}
+
+    project_str.update({"assets":dataDic})
+    json_str = json.dumps(project_str, sort_keys = True, indent = 2)
+
+    fo = open(projectManifestPath,"w")  
+    fo.write(json_str)  
+    fo.close()
+
+
+if __name__ == "__main__":
+    GenerateversionManifestPath()
+    GenerateprojectManifestPath()
+123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122
+
+3.利用cocos assetManager来从服务器获取文件并且进行资源的替换（这里所谓的替换并不是真正的替换，利用了Fileutils->searchPath（）设置资源文件读取的优先级。也就是老资源和代码并没有删除，而是舍弃不用。）
+1
+
+
+
+--region *.lua
+--Date
+--此文件由[BabeLua]插件自动生成
+
+local AssetsManager = class("AssetsManager",function ()
+    return cc.LayerColor:create(cc.c4b(20, 20, 20, 220))
+end)
+
+function AssetsManager:ctor()
+    self:onNodeEvent("exit", handler(self, self.onExitCallback))
+    self:initUI()
+    self:setAssetsManage()
+end
+
+function AssetsManager:onExitCallback()
+    self.assetsManagerEx:release()
+end
+
+function AssetsManager:initUI()
+
+    local hintLabel = cc.Label:createWithTTF("正在更新...", CONFIG.TTF_FONT_2, 20)
+        :addTo(self)
+        :move(600, 80)
+
+    local progressBg = display.newSprite("sprites/hyd_progress_bg.png")    
+        :addTo(self)
+        :move(600, 40)
+
+    self.progress = cc.ProgressTimer:create(display.newSprite("sprites/hyd_progress.png"))
+        :addTo(progressBg)
+        :move(380, 19)
+    self.progress:setType(cc.PROGRESS_TIMER_TYPE_BAR)
+    self.progress:setBarChangeRate(cc.p(1, 0))
+    self.progress:setMidpoint(cc.p(0.0, 0.5))
+    self.progress:setPercentage(0) 
+
+    --触摸吞噬
+    self.listener = cc.EventListenerTouchOneByOne:create()
+    self.listener:setSwallowTouches(true)
+    local onTouchBegan = function (touch, event)
+        return true
+    end
+
+    self.listener:registerScriptHandler(onTouchBegan, cc.Handler.EVENT_TOUCH_BEGAN)
+    cc.Director:getInstance():getEventDispatcher():addEventListenerWithSceneGraphPriority(self.listener, self)   
+end
+
+function AssetsManager:setAssetsManage()
+    --创建可写目录与设置搜索路径
+    local storagePath = cc.FileUtils:getInstance():getWritablePath() .. "NewRes/" 
+    local resPath = storagePath.. '/res/'
+    local srcPath = storagePath.. '/src/'
+    if not (cc.FileUtils:getInstance():isDirectoryExist(storagePath)) then         
+        cc.FileUtils:getInstance():createDirectory(storagePath)
+        cc.FileUtils:getInstance():createDirectory(resPath)
+        cc.FileUtils:getInstance():createDirectory(srcPath)
+    end
+    local searchPaths = cc.FileUtils:getInstance():getSearchPaths() 
+    table.insert(searchPaths, 1, storagePath)  
+    table.insert(searchPaths, 2, resPath)
+    table.insert(searchPaths, 3, srcPath)
+    cc.FileUtils:getInstance():setSearchPaths(searchPaths)
+
+    self.assetsManagerEx = cc.AssetsManagerEx:create("version/project.manifest", storagePath)    
+    self.assetsManagerEx:retain()
+
+    local eventListenerAssetsManagerEx = cc.EventListenerAssetsManagerEx:create(self.assetsManagerEx, 
+       function (event)
+           self:handleAssetsManagerEvent(event)
+       end)
+
+    local dispatcher = cc.Director:getInstance():getEventDispatcher()
+    dispatcher:addEventListenerWithFixedPriority(eventListenerAssetsManagerEx, 1)
+
+    --检查版本并升级
+    self.assetsManagerEx:update()
+end
+
+function AssetsManager:handleAssetsManagerEvent(event)    
+    local eventCodeList = cc.EventAssetsManagerEx.EventCode    
+
+    local eventCodeHand = {
+
+        [eventCodeList.ERROR_NO_LOCAL_MANIFEST] = function ()
+            print("发生错误:本地资源清单文件未找到")
+        end,
+
+        [eventCodeList.ERROR_DOWNLOAD_MANIFEST] = function ()
+            print("发生错误:远程资源清单文件下载失败")  --资源服务器没有打开，
+            self:downloadManifestError()
+        end,
+
+        [eventCodeList.ERROR_PARSE_MANIFEST] = function ()
+             print("发生错误:资源清单文件解析失败")
+        end,
+
+        [eventCodeList.NEW_VERSION_FOUND] = function ()
+            print("发现找到新版本")
+        end,
+
+        [eventCodeList.ALREADY_UP_TO_DATE] = function ()
+            print("已经更新到服务器最新版本")            
+            self:updateFinished()
+        end,
+
+        [eventCodeList.UPDATE_PROGRESSION]= function ()
+            print("更新过程的进度事件")
+            self.progress:setPercentage(event:getPercentByFile())
+        end,
+
+        [eventCodeList.ASSET_UPDATED] = function ()
+            print("单个资源被更新事件")
+        end,
+
+        [eventCodeList.ERROR_UPDATING] = function ()
+            print("发生错误:更新过程中遇到错误")
+        end,
+
+        [eventCodeList.UPDATE_FINISHED] = function ()
+            print("更新成功事件")
+            self:updateFinished()
+        end,
+
+        [eventCodeList.UPDATE_FAILED] = function ()
+            print("更新失败事件")
+        end,
+
+        [eventCodeList.ERROR_DECOMPRESS] = function ()
+            print("解压缩失败")
+        end
+    }
+    local eventCode = event:getEventCode()    
+    if eventCodeHand[eventCode] ~= nil then
+        eventCodeHand[eventCode]()
+    end  
+end
+
+function AssetsManager:updateFinished()
+    self:setVisible(false)
+    self.listener:setEnabled(false)
+end
+
+function AssetsManager:downloadManifestError()
+    self:setVisible(false)
+    self.listener:setEnabled(false)
+end
+
+return AssetsManager
