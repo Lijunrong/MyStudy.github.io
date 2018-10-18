@@ -1,0 +1,25 @@
+游戏中某些场合，你只想进行一次逻辑检测，Cocos2d-x同样提供了单次调度器。
+
+该调度器只会触发一次，用unschedule(SEL_SCHEDULE selector, float delay)来取消该触发器。
+
+以下代码用来测试该调度器：
+
+HelloWorldScene.h
+
+void updateOnce(float dt);
+HelloWorldScene.cpp
+
+bool HelloWorld::init()
+{
+    ...
+    scheduleOnce(schedule_selector(HelloWorld::updateOnce), 0.1f);
+    return true;
+}
+
+void HelloWorld::updateOnce(float dt)
+{
+    log("Once");
+}
+这次在控制台你只会看到一次输出
+
+cocos2d: Once
