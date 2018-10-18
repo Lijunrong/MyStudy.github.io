@@ -1,0 +1,39 @@
+###自定义调度器(scheduler)
+
+游戏开发中，在某些情况下我们可能不需要频繁的进行逻辑检测，这样可以提高游戏性能。所以Cocos2d-x还提供了自定义调度器，可以实现以一定的时间间隔连续调用某个函数。
+
+由于引擎的调度机制，自定义时间间隔必须大于两帧的间隔，否则两帧内的多次调用会被合并成一次调用。所以自定义时间间隔应在0.1秒以上。
+
+同样，取消该调度器可以用unschedule(SEL_SCHEDULE selector, float delay)。
+
+以下代码用来测试该调度器：
+
+HelloWorldScene.h
+
+void updateCustom(float dt);
+HelloWorldScene.cpp
+
+bool HelloWorld::init()
+{
+    ...
+    schedule(schedule_selector(HelloWorld::updateCustom), 1.0f, kRepeatForever, 0);
+    return true;
+}
+
+void HelloWorld::updateCustom(float dt)
+{
+    log("Custom");
+}
+在控制台你会看到每隔1秒输出以下信息
+
+cocos2d: Custom
+cocos2d: Custom
+cocos2d: Custom
+cocos2d: Custom
+cocos2d: Custom
+我们来看下scheduler(SEL_SCHEDULE selector, float interval, unsigned int repeat, float delay)函数里面的参数：
+
+第一个参数selector即为你要添加的事件函数
+第二个参数interval为事件触发时间间隔
+第三个参数repeat为触发一次事件后还会触发的次数，默认值为kRepeatForever，表示无限触发次数
+第四个参数delay表示第一次触发之前的延时
