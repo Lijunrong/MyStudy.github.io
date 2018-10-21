@@ -1,0 +1,115 @@
+tabel要点：
+
+1 table采用关联数组形式，也就是“键-值”对，“key-value”
+
+2 table没有固定的大小，可以动态地添加任意数量的元素到一个table。
+
+3 table的键可以是整数，也可以是string，或者其它类型。
+
+4 {}表示一个空的table对象，判断table对象是否为空，不能通过判断 table == {}，因为{}也是个table对象，而该采用next(table) == nil 来判断
+
+5 table的作为数组时，第一个值的索引为1
+
+6 table可以作为数组，如下 
+local t = {
+	"a",
+	"b",
+	"c",
+	"d",
+}
+此table表示的是一个数组，而其索引被隐藏，相当于 local t = {
+  [1] = 'a',
+  [2] = 'b',
+  [3] = 'c',
+  [4] = 'd',
+}
+
+7 遍历table的方法：
+(1) for i=1,#t do
+  print(t[i])
+end
+此种方法是只有当key值为连续的整数索引时才能适用，也就是当table表示一个数组时，注意key值必须是连续的整数，如果不连续，将出现一些意料不到的问题，如
+local t = {
+  [2] = "a",
+  [3] = "c",
+  [4] = "d",
+}
+for i=1,#t do
+	print(t[i])
+end
+
+没有打印任何东西，适用#table来获取它的长度，结果长度为0
+
+把 t改为：local t = {
+  [1] = "a",
+  [3] = "c",
+  [4] = "d",
+}
+
+此时遍历的结果只有a,数组的长度也只有1
+
+（2）for i,v in ipairs(t) do
+	      print(i,v)
+     end
+此种遍历，也是采用索引值遍历，也就是key值为连续整数，或者说是连续的索引，如果不连续，将出现意想不到的bug，如：
+local t = {
+  [2] = "a",
+  [3] = "c",
+  [4] = "d",
+}
+for i,v in ipairs(t) do
+	      print(i,v)
+end
+此tabel打印出来为空。因为索引为1的值为空，导致索引中断。也就是说，采用ipairs来遍历的时候，不能有空值，否则将导致索引中断。再如：
+local t = {
+	[1] = "aaa",
+	[2] = nil,
+	[3] = "ddd",
+}
+for i,v in ipairs(t) do
+	      print(i,v)
+end
+此时打印结果为:aaa，因为第二个值为空，导致索引中断
+
+(3)
+for k,v in pairs(t) do
+	print(k,v)
+end
+此种遍历采用键值对遍历，k为键，v为值，因此，k既可以是整数，也可以是字符串，因此不要求k必须连续，而且值也可以为空，当其中一个值为空时，pairs迭代器会自
+动跳过值为空的项，但不会导致中断，例如：
+local t = {
+	[1] = "aaa",
+	[2] = nil,
+	[3] = "ddd",
+}
+for k,v in pairs(t) do
+	print(k,v)
+end
+此时遍历的结果为：
+1 aaa
+3 ddd
+
+也就是说 pairs迭代器会自动忽略值为空的项，其次，pairs并非顺序遍历，也就是说，遍历的次序可能跟存储时的次序不一样。因为存储时是按照key值的哈希地址来
+存储的。再如：
+local t = {
+  ["d"] = nil,
+	["1"] = "aaa",
+	["2"] = nil,
+	["3"] = "ddd",
+	["5"] = "eeeee",
+	["ggg"] = nil,
+	["999"] = ",,,,,,,,,,",
+	["o"] = "vvvvvvvvvvvvvvv",
+	['a'] = "fffffffffffffffff"
+}
+for k,v in pairs(t) do
+	print(k,v)
+end
+
+打印结果为：
+1	aaa
+3	ddd
+5	eeeee
+a	fffffffffffffffff
+o	vvvvvvvvvvvvvvv
+999	,,,,,,,,,,
