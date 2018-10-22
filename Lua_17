@@ -1,0 +1,51 @@
+Lua-------尾调用
+
+当一个函数调用另一个函数后，就没有执行其它操作了就是一个尾调用，例如：
+
+function A()
+   local x = 1
+   return x
+end
+
+function B()
+  return A()
+end
+
+以上就是一个尾调用，函数B调用了A之后就没有执行其它操作了，要注意的是A必须有个返回。因为B调用A之后，没有执行其它操作，所以不需要保留B()的调用栈
+信息，Lua做了这样的优化，称为"尾调用消除"，A()返回后，控制点直接返回到调用B()的地方。这种优化对尾递归非常有益，通常递归意味着调用桟的不断增长，
+甚至可能造成堆栈溢出；而尾递归提供了优化条件，编译器可以优化掉调用桟。 
+
+尾调用的作用在于可以创建状态机：
+
+例如控制精灵移动：
+function Move(direction)
+  if direction == LEFT then
+       return MoveToLeft()
+  elseif direction == RIGHT then
+       return MoveToRight()
+  elseif direction == UP then
+        return MoveToUp()
+  elseif direction == DOWN then
+        return MoveToDown()
+  end
+end
+
+function MoveToLeft()
+  X = X -1
+  return X
+end
+
+function MoveToRight()
+  X = X  + 1
+  return X 
+end
+
+function MoveToUp()
+  Y = Y + 1
+  return Y
+end
+
+function MoveToDown()
+  Y = Y - 1
+  return Y
+end
