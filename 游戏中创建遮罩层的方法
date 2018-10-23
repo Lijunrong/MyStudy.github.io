@@ -1,0 +1,29 @@
+1 创建一个空的Layer，
+2 设置layer可触摸
+3 重写layer的addTouchEventListener方法，并在此方法中设置吞没事件
+4 addChild到相应的Panel
+
+伪代码：
+local layer = display.newLayer()
+layer:setTouchEnabled(true)
+layer:addTouchEventListener(function() return true end, true)
+panel:addChild(layer) --添加到相应的面板
+
+ --重写addTouchEventListener
+    function node:addTouchEventListener(handler, allAtOnce, swallow, tag)
+        if node.__eventListenerTouch__ then
+            eventDispatcher:removeEventListener(node.__eventListenerTouch__)
+        end
+
+        if tag~=nil then swallow = tag end   --为了兼容2.23的代码 addTouchEventListener(handler, allAtOnce, priority, swallow)
+        node.__touchHandler__ = handler
+        local touchOneByOneListener = cc.EventListenerTouchOneByOne:create()
+        touchOneByOneListener:setSwallowTouches(swallow) --设置吞没事件
+        --以下是注册事件
+        touchOneByOneListener:registerScriptHandler(onTouchBegan, cc.Handler.EVENT_TOUCH_BEGAN )
+        touchOneByOneListener:registerScriptHandler(onTouchMoved, cc.Handler.EVENT_TOUCH_MOVED )
+        touchOneByOneListener:registerScriptHandler(onTouchEnded, cc.Handler.EVENT_TOUCH_ENDED )
+        touchOneByOneListener:registerScriptHandler(onTouchEnded, cc.Handler.EVENT_TOUCH_CANCELLED )
+        node.__eventListenerTouch__ = touchOneByOneListener
+        eventDispatcher:addEventListenerWithSceneGraphPriority(node.__eventListenerTouch__, node)
+    end
