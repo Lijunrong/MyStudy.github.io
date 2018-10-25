@@ -1,0 +1,43 @@
+1 Cocos2dx使用的计数叫引用计数---
+
+2 当一个CCObject被创建时，其引用计数器自动被赋值为1，当调用了retain方法时，引用计数器值+1，当调用release方法时，引用计数器值-1，当计数器值 ==0时候
+，把它给删除了。
+
+3 AutoreleasePool：将当前对象添加到对象管理池，但是并没有立即调用release方法，而是将对象放到对象管理池，等该帧结束时，由该AutoreleasePool对象执行
+release操作。
+
+4 静态工厂方法create的动作有:
+(1) 创建一个对象 new
+(2) init 初始化操作
+(3) 调用autorealease方法
+(4) return 这个对象
+
+所以，通过create方法创建的对象，只有当 当前循环消息结束了才会执行release()方法，也就是一帧结束了。
+
+5 当对象被addChild时，它的引用计数值+1
+
+6 当调用createWithXXX方法时，效果跟create方法一样。
+
+7 只有以下两种情况要手动调用release方法：
+
+（1）当new一个对象时，需要手动调用release方法
+（2）当手动调用了retain方法时，也需要手动调用release()方法
+
+8 mainLoop主循环如下：
+void DisplayLinkDirector::mainLoop(){
+    // 省略一部分代码
+    {
+        drawScene();
+        // release the objects
+        PoolManager::getInstance()->getCurrentPool()->clear();
+    }
+} 
+
+void AutoreleasePool::clear()
+{
+    for (const auto &obj : _managedObjectArray)
+    {
+        obj->release();
+    }
+    _managedObjectArray.clear();
+}
