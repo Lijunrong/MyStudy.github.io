@@ -1,0 +1,28 @@
+CCSpriteFrameCache
+
+CCSpriteFrameCache单例是所有精灵帧的缓存。使用spritesheet和与之相关的xml文件，我们可以加载很多的精灵帧到缓存中，那么之后我们就可以从这个缓存中创建精灵对象了。
+
+和这个xml相关的纹理集一般是一个很大的图片，里面包含了很多小的纹理。下面就是一个纹理集的例子：
+
+有三种方式来加载纹理集到CCSpriteFrameCache中：
+
+加载一个xml（plist）文件
+加载一个xml（plist）文件和一个纹理集
+通过CCSpriteFrame和一个精灵帧的名字
+具体完整API请看CCSpriteFrameCache API。
+
+样例：
+
+CCSpriteFrameCache* cache = CCSpriteFrameCache::sharedSpriteFrameCache(); 
+
+cache->addSpriteFramesWithFile(“family.plist”, “family.png”); 
+使用缓存的原因就是减少内存，因为当你使用一个图片创建一个精灵的时候，如果这个图片不在缓存中，那么就会将他加载到缓存中，当你需要用相同的图片来新建精灵的时候，就可以直接从缓存中取得，而不用再去新分配一份内存空间。
+
+
+
+CCSpriteFrameCache  vs  CCSpriteBatchNode
+
+最好是尽可能的使用spritesheets (CCSpriteBatchNodes)。这样的方式是减少draw的调用次数。Draw的调用是非常耗时的。每一个batchnode调用一次draw就可以绘制上面所有的节点，而不是每一个节点的draw都单独调用一次，
+CCSpriteBatchNode渲染所有的子节点只需要一次，只需要调用一次draw。那就是为什么你需要把精灵加载batch node的原因，因为可以统一一起渲染。但是只有这个精灵使用的纹理包含在batch node中的才可以添加到batch node上，因为batch node一次只渲染这相同的纹理集。
+假如你把精灵添加到其他的节点上。那么每一个精灵就会调用自己的draw函数，batch node就没起作用了。
+CCSpriteBatchNode也是一个常用节点。你可以从场景中像其他节点一样移除掉。纹理集和精灵帧都被缓存在CCTextureCache 和 CCSpriteFrameCache单例中。假如你想要从内存中移除纹理集和精灵帧，那么你不得不通过缓存类来完成这个工作。
