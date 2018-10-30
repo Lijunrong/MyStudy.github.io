@@ -17,3 +17,17 @@ create 创建一个协同程序，并返回该协同程序，参数只有一个�
 需要调用resume来唤醒，才能正常运行起来！
 
 yield  挂起一个协同程序，与resume组合。使一个协同程序从运行状态变为挂起状态！
+
+resume:将挂起状态的协程唤醒。用于启动或者再启动一个协同程序的执行。
+
+例如：
+co = coroutine.create(
+ function () 
+    print("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT") 
+ end 
+ )
+ 
+ coroutine.resume(co) 
+ 
+ 
+ 
