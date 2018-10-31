@@ -27,7 +27,54 @@ co = coroutine.create(
  end 
  )
  
- coroutine.resume(co) 
+ coroutine.resume(co)  TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
  
+ 
+ yield 和 resume之间参数的相互回调：
+ 
+1 在第一次resume时传入的参数，是直接传给协程中的回调函数，作为它的参数。如：
+co = coroutine.create(function (a,b)
+	print(a,b)
+end)
+
+coroutine.resume(co,1000,10000)  -------- 1000 100000
+
+2 如果不是第一次调用resume，那么resume的参数将直接作为yield的返回值。如：
+co = coroutine.create(function (a,b)
+	print(a,b)
+
+	local returnData = coroutine.yield()
+
+	print("returnData================================="..returnData)
+end)
+
+coroutine.resume(co,1000,10000)
+
+coroutine.resume(co,5555)
+
+1000	10000
+returnData=================================5555
+
+
+coroutine.wrap函数：
+wrap 的作用相当于create，也是创建一个协程，不同的是wrap返回的是一个函数，执行该函数，相当于执行coroutine.resume()方法。
+
+例如：
+co = coroutine.wrap(function (a,b)
+	print(a,b)
+
+	local returnData = coroutine.yield()
+
+	print("returnData================================="..returnData)
+end)
+
+-- coroutine.resume(co,1000,10000)
+-- coroutine.resume(co,5555)
+
+co(1000,9999999)
+co(7777777777)
+
+1000	9999999
+returnData=================================7777777777
  
  
