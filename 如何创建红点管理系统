@@ -1,7 +1,6 @@
 在游戏功能系统开发过程中，经常会做遇到一些烦人的红点需求，比如一个装备锻造功能系统，可能就有几个页签，比如强化，魔化等，洗练等，然后每个页签当满足可以操作
 的条件时候，就要有烦人的红点提示，而且对于整个功能系统而言，只要存在一个页签有红点，那么功能系统的入口icon也要有红点提示，在这里，就有一个层级关系，子层
 的红点会影响上层红点的状态，不过，上层的红底不会影响子层的红点状态，也就是说，红点状态的改变只会是向上传递，因为上层红点状态的改变是因为子层红点发生变化。
-
 最外层的红点有几个页签红点作为子节点，几个页签子节点有一个共同的父节点红点，所以一个红点结构，要记录其父节点红点，以及子节点红点列表。除此之外，红点自身
 的状态，名字（我们可以给红点对象命名，以此作为键值），当然还要有一个回调函数，回调函数在红点状态发生改变时调用，可以在回调函数里面广播一条信息，给监听的
 界面，然后做相应的隐藏或者显示处理。综上所述，一个红点数据结构要有以下数据：1自身的名字（键值）2自身的状态（显示与否），3回调函数  4 父节点红点的名字
@@ -29,3 +28,91 @@ returen RedPointBase
 红点操作类：
 local RedPointBase = require("RedPointBase")
 local RedPoint = class("RedPoint")
+
+function RedPoint:ctor()
+    self.queue_ = {} ---红点列表，用以保存所有的红点
+end
+
+
+--创建红点
+function RedPoint:createNotice(name,root_name,state,func)   --创建红点
+   local redPointBase = RedPointBase:new({name = name,rootname = root_name,state = state,func = func}) --创建红点结构
+   self.queue_[name] = redPointBase --保存
+   if root_name and self.queue_[root_name] then  --如果存在父节点红点，保存为父节点的子节点
+         self.queue_[root_name].childList[name] = redPointBase
+   end
+   self:setRedPointState(name,state) --初始化红点状态
+end
+
+--设置红点的状态
+function RedPoint:setRedPointState(name,state)
+    local redPoint = self.queue_[name]
+    if redPoint.state == state then --当前状态与要设置状态相同，则不用处理
+        return
+    end
+    redPoint.state = state --修改状态
+    if redPoint.func then --存在回调函数，执行回调
+        redPoint:func()
+    end
+    ---------------------接下来检查父节点红点
+    self:checkRootRed(name)
+end
+
+
+function RedPoint:checkRootRed(name)
+      local rootname = self.queue_[name].rootname_
+      if not rootname or not self.queue_[rootname] then  ---不存在父节点
+          return
+      end
+      
+      local state = 0
+      for_,notice in pairs(self.queue_[rootname].childList) do
+          if notice.state ==1 then ---有一个子节点红点状态为显示
+              state = 1
+              break
+          end
+      end
+      
+      local rootRedPoint = self.queue_[rootname]
+      if rootRedPoint.state = state then --状态相同
+          return
+      end
+      rootRedPoint.state = state
+      if rootRedPoint.func then
+          rootRedPoint:func()
+      end
+      self:checkRootRed(rootname) --递归遍历父节点红点
+end
+return RedPoint
+
+--------------------------------------------------------
+红点管理器基本功能就搞定了
+--------------------------------------------------------
+
+如何使用？？？？？？？？？？？
+
+
+在外部调用RedPoint类创建一个对象，然后调用createNotice（）方法创建红点，注意！！！！如果有父节点的红点，要先创建父节点红点！！！举例子：
+上面所说的装备锻造功能，先创建最外层红点：
+
+
+local RedPoint = require("RedPoint")
+
+local redPoint = RedPoint.new()
+
+--创建最外层父节点
+redPoint:createNotice("Equip",nil,0,function() --回调里面广播消息给界面  end)
+
+--创建页签红点,装备强化
+redPoint:createNotice("EquipStrengthen","Equip",0,function() --广播消息 end)
+
+--创建页签红点，装备洗炼
+redPoint:createNotice("EquipXiLian","Equip",0,function()--广播消息 end)
+然后在界面监听到广播时，调用setRedPointState设置红点的状态。。。。。。。
+
+
+还可以加一些接口，获取某种红点的状态
+
+function RedPoint:getRedPointState(name)
+    return self.queue_[name].state
+end
