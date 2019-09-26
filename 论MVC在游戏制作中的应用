@@ -1,0 +1,141 @@
+本人是一只游戏客户端攻城狮，在从事游戏研发的工作中，亦或是在找工作面试的过程中，经常会看到或者被问到关于MVC的东西。记录一下自己对MVC的一些理解:
+
+概念：其实MVC一开始并不是应用于游戏研发，而是网站研发，M----Model----数据模块，V-----View-----视图（界面），C-----Controller-----控制器
+
+作用：数据模块：缓存数据，例如----游戏中会有很多数据，比如一个装备系统----各种装备，评分啊，属性啊，，这些数据通常是要缓存在客户端本地的，在游戏登录时
+               由服务器发送过来。
+               
+     视图    : 最直白的说法就是界面了，你在玩游戏过程中看到的一切，你所操作的一切，比如----一个背包系统界面，除了展示，还要提供玩家交互的功能
+     
+     控制器  ：控制器的作用就是关联数据模块与视图了，它负责处理游戏中的数据，同时又提供数据给视图，是中间桥梁，处理客户端与服务器的数据交互。
+     
+     
+相互之间怎么作用：
+
+我们在打开游戏界面时，会去调用数据模块里面的数据，然后展现在游戏界面，而游戏数据，则是在登录游戏时，由控制器向服务器请求数据，服务器返回数据给客户端，也
+就是控制器，控制器调用数据模块的一些初始化接口，进行数据的初始化。
+
+
+怎么搭建MVC框架啊？？
+（我一直是用cocos游戏引擎+Lua语言做手游研发工作，因此，mvc框架是建立在cocos引擎+lua语言上。）
+---------------------------------------------------------------------------------------------------------------------------------------------
+1 创建Model，首先，我们可以写个基类，数据模块的基类，不同功能系统的数据模块可以继承之，我们把基类取名为ModelBase，代码如下：
+
+local ModelBase = class("ModelBase") ---调用Lua的class语句声明ModelBase是一个类！
+
+function ModelBase:ctor(...) ---重写构造函数
+  self.name_ = self.__cname --记录一下类名字，__cname是lua的语法糖，叫做元索引，或者说是一个key，记录的就是class里面的名字
+  if self.onCreate then ---如果存在onCreate函数，调用之，可以在子类中定义该函数，该函数可用于初始化一些数据结构
+     self:onCreate()
+  end
+end
+
+function ModelBase:__onDestroy()--重写class中的__onDestroy方法，当class被销毁时调用
+  if self.onDestroy then --如果存在onDestroy方法，调用之，在子类中定义该函数，可用于销毁一些数据结构
+      self:onDestroy()
+  end 
+end
+
+return ModelBase
+
+定义好了数据模块的基类，可以写具体功能的数据模块了，如装备功能的数据模块：
+
+local EquipModel = class("EquipModel",require("ModelBase")) --定义EquipModel，同时继承ModelBase
+
+function EquipModel:onCreate() --定义一些数据结构，比如装备列表，装备总评分
+    self.equipList_ = {} --装备列表
+    self.totalScore = 0 --装备总评分
+end
+
+function EquipModel:onDestroy() 
+    self.equipList_= nil --置空，成为垃圾字段，lua会自动回收
+end
+
+
+-----------------------------------------------------定义一些外部接口，供给外部调用-------------------------------------------------------
+function EquipModel:initData(data) -----初始化数据
+   self.equipList_=data.equipList
+   self.totalScore = data.totalScore 
+end
+
+funtion EquipModel:getEquipList() ---获取装备列表
+  return self.equipList_
+end
+function EquipModel:getTotalScore() --获取装备总评分
+   return self.totalScore
+end 
+return EquipModel
+
+数据模块就定义好了
+
+------------------------------------------------------------------------------------  -------------------------------------------------------
+2  控制器模块Controller
+同样，我们定义控制器的基类，定义一些基本行为方法。ControllerBase
+local NetWorkBinder = require("NetWorkBinder")---网络事件绑定控制器，用于绑定网络事件回调，暂不讲解
+local ControllerBase = class("ControllerBase")
+function ControllerBase:ctor(...)
+    self.name = self.__cname
+    self.netCtronller =  NetCtronller.new() --网络管理器，可用于处理协议相关的
+    if self.onCreate then
+        self:onCreate()
+    end 
+    local response_event = rawget(self.class,"__RESPONE_BINDING")  --网络事件绑定列表，暂不讲解
+    if response_event then
+      self.net_binder_ = NetWorkBinder.new(self,response_event)
+    end
+    local appevent = rawget(self.class,"__APPEVENT_BINDING") --获取本地事件列表，
+    if appevent then    --本地事件绑定起来
+        self:createAppEventBinding(appevent)
+    end
+    
+    if self.onCreate then
+      self:onCreate()
+    end
+end
+
+--此函数用于绑定本地广播事件
+function ControllerBase:createAppEventBinding(appevent)
+
+end
+
+function ControllerBase:__onDestroy()
+    if self.onDestroy then
+        self:onDestroy()
+    end
+end
+return ControllerBase
+
+定义好了控制器基类后，就可以写具体的功能模块控制器了，如装备模块-----EquipController-----
+
+local EquipController = class("EquipController",require("EquipController"))
+EquipController.__RESPONE_BINDING = { --网络事件响应绑定列表
+  "EquipResponeInfo" = "netEquipResponeInfo", 
+}
+EquipController.__APPEVENT_BINDING = {
+  "广播名" = "回调函数名"
+}
+function EquipController:onCreate()
+    self.model = EquipModel.new() --创建model对象
+end
+function EquipController:netEquipResponeInfo(data)
+    self.model:initData(data) --调用数据模块接口初始化数据
+end
+return EquipController
+
+控制器写完
+-----------------------------------------------------------------------------------------------------------------------------------
+View--------界面编写,cocos2dx界面
+local EquipModel = require("EquipModel")
+local view = clase("View",cc.Layer) --创建一个Layer界面
+function view:ctor()
+   self.model = EquipModel.new() --创建model对象
+end
+function view:onEnter()
+    self.equipList_ = self.model:getEquipList()  --拿取数据
+    self.totalScore = self.model:getTotalScore() --拿去数据
+end
+return view
+
+View视图写完
+----------------------------------------------------------------------------------------------------------------0
+
