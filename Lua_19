@@ -1,0 +1,20 @@
+lua语言想要用到某个模块或者某个类class，一定要先require,当然可以做成全局的一个类，这样在全局环境里直接使用类名即可索引到
+
+例子：
+
+local GameController = class("GameController")
+function GameController:ctor( ... )
+	-- body
+	rawset(_G,self.__cname,self)  --此句即是重点
+end
+function 
+return GameController
+
+语句讲解:
+rawset(_G,self.__cname,self)  rawset方法用于改变一个表的某个键值所对应的值，这里_G是lua的全局表的键值，lua的全局环境保存在一张全局表里，self.__cname
+是指当前类的类名，也就是“GameController”，而self，就是类的对象了。这句代码的意思就是：把全局表里面，键值是GameController的数据设置为GameController的
+对象。
+经过这句代码的处理后，掉用GameController就不用require,也不用去new，只需要如此：在其它任何地方都可直接使用
+
+GameApp:getXXX()
+
