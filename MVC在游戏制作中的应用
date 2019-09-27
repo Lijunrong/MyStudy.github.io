@@ -75,7 +75,9 @@ local NetWorkBinder = require("NetWorkBinder")---网络事件绑定控制器，�
 local ControllerBase = class("ControllerBase")
 function ControllerBase:ctor(...)
     self.name = self.__cname
+    self.appevent_list = {}
     self.netCtronller =  NetCtronller.new() --网络管理器，可用于处理协议相关的
+    cc.bind(self,"event") ---绑定广播事件
     if self.onCreate then
         self:onCreate()
     end 
@@ -95,7 +97,9 @@ end
 
 --此函数用于绑定本地广播事件
 function ControllerBase:createAppEventBinding(appevent)
-
+   for index,v in ipairs(appevent) do
+        self.appevent_list_[eventname] = self:addEventListener(eventname,handle(self,self[v])) --注册广播事件
+   end
 end
 
 function ControllerBase:__onDestroy()
