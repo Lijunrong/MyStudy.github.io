@@ -1,0 +1,120 @@
+cocos2d-lua引擎，在目录frameworks\cocos2d-x\cocos\scripting\lua-binding\scrips\framework\components\下有一个event.lua文件，定义一个Event事件类，
+处理事件的派发和监听。重点说一下事件派发和监听：
+
+Event里面的监听函数主要代码：
+
+function Event:on(eventName,listener,tag)
+	-- body
+	eventName = string.upper(eventName)
+	if self.listener_[eventName]==nil then
+		self.listener_[eventName] = {}
+	end
+
+	self.nextListenerHandleIndex_ = self.nextListenerHandleIndex_ + 1
+	local handle = tostring(self.nextListenerHandleIndex_)
+	tag  = tag or ""
+	self.listener_[eventName][handle] = {listener,tag}
+
+end
+Event.addEventListener = Event.on
+
+代码讲解：
+代码里面两个重要的变量，listener_事件列表，nextListenerHandleIndex_事件索引，作用如下:
+
+listener_:事件存储列表，存储每个事件名对应的事件回调
+nextListenerHandleIndex_：事件索引，记录着第几个事件，因为同一个事件，可以监听多次，而且可以，有不同的回调，或者说不同的事件处理，所以要有一个变量记录当前是哪个事件回调，
+这就是nextListenerHandleIndex_的作用
+
+从代理里可以看出，on函数的作用是注册监听器，把事件回调以事件名为键值存储起来而已,并记录下当前事件的索引，仅此而已。那么它又是如何执行事件回调的呢？其实，
+事件回调是在派发事件函数中执行，代码入下：
+function Event:dispatchEvent(event)
+	-- body
+	event.name = string.upper(tostring(event.name))
+	local eventName = event.name
+
+	if self.listener_[eventName] == nil then  --判断事件是否存在
+		return
+	end
+
+	for handle,listener in pairs(self.listener_[eventName]) do --遍历同一个事件名下的所有回调
+		listener[1](event)       --listener[1]就是事件回调了，此处执行事件回调
+	end
+end
+
+从代码里可以看出，先判断事件列表里面有没有该事件名对应的东西存在，然后才会遍历该事件名对应的所有事件回调，并执行事件回调。因此，要先注册事件，注册了的
+事件保存在列表，然后在派发事件时才会被执行！！！
+
+除此之外，Event类里面还有一个bind绑定函数，用以把Event绑定到具体的其它类上：
+function Event:bind(target)
+	-- body
+	self:init_()
+	cc.setmethods(target,self,EXPORTED_METHODS) --绑定方法到target对象上
+	self.target_ = target  --要保存一下对象
+end
+
+从代码里可以看出，首先是做初始化，然后是绑定Event方法到目标对象上，然后是保存一下目标对象，主要代码如此，然后是怎么使用
+
+------------------------------------------------------------------怎么使用------------------------------------------------------------------
+写个例子，绑定下事件。
+local Example = require("Example")
+function Example:ctor()
+ 	 cc.bind(self,'event') --绑定事件到Example上
+end
+  
+function Example:addEventListener(eventName,func)
+	self:addEventListener(eventName,func)
+end
+
+function Example:dispatchEvent(eventName)
+	-- body
+	self:dispatchEvent(eventName)
+end
+return Example
+
+local Example = require('Example')
+Example:addEventListener('aaaaaaa',function ( ... )   -------先注册监听器，
+	-- body
+	print("ggggggggggggggggggggggggggggggggggg")
+end)
+
+Example:dispatchEvent('aaaaaaa')   ------再广播事件
+
+------------------------------------------------------------灵活运用---------------------------------------------------------------------
+在游戏开发中，我们可以采用MVC框架形式开发，其中的C就是C就是控制器，Controller，控制器处理协议交互，以及一些广播事件
+local ControllerBase = class("ControllerBase")
+function ControllerBase:ctor(...)
+	-- body
+	self.appEventList_ = {}
+	cc.bind(self,'event')
+	local appEvents = rawget(self.class,'__APPEVENT_BINDING')
+	if appEvents then
+		self:createAppEvent(appEvents)
+	end
+end
+
+function ControllerBase:createAppEvent(appEvents)
+	-- body
+	for eventName,func in pairs(table_name) do
+		self.appEventList_[eventName] = self:addEventListener(eventName,handle(self,self[v]))
+	end
+end
+return ControllerBase
+
+定义具体的控制器，比如装备控制器：
+local EquipController = class('EquipController',require('ControllerBase'))
+EquipController.__APPEVENT_BINDING = {
+	"事件名" = "回调函数名",
+}
+function EquipController:ctor()
+	
+end
+
+function EquipController:回调函数名()
+	
+end
+return EquipController
+
+---------------------------------------------------------Over-------------------------------------------------------------------------
+
+
+
