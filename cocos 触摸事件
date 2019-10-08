@@ -1,0 +1,14 @@
+Cocos触摸事件分为单点触摸和多点触摸：单点触摸（EventListenerTouchOneByOne ），多点触摸（EventListenerTouchAllAtOnce），触摸事件使用流程，以单点触摸
+为例子：
+local touchListener = EventListenerTouchOneByOne:create()
+touchListener:setSwallowTouches(true)
+touchListener:registerScriptHandler(handle(self,self.touch),cc.Handle.EVENT_TOUCH_BEGAN)
+local eventDispatcher = cc.Director:getInstance():getEventDispatcher()
+eventDispatcher:addEventListenerWithSceneGraphPriority(touchListener,self)
+
+
+Cocos2dx有一个UIWidget,是控件的基类，按钮，滑动列表等继承之，在UIWidget里面有setTouchEnabled函数，该函数用以控制Widget控件是否可以触摸，在该函数中
+如果是可触摸的，会注册监听器，所以同时绑定onTouchBegan onTouchMoved onTouchEnded onTouchCancelled 四个函数，分别响应触摸事件开始，移动，结束，和取消
+四个过程。而在onTouchBegan函数中，会先判断控件是否是可见并且是可以触摸的，这就可以解释为什么当控件是不可见时，点击控件不触发触摸事件了。
+
+setSwallowTouches 设置是否吞没事件，如果为true，则吞没事件，也就是说，事件不会向下传递了，在当前控件下面的可点击的控件不会触发点击事件！！
