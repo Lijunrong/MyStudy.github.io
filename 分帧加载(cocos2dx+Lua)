@@ -1,0 +1,78 @@
+游戏开发中经常会遇到这样的问题：界面需要同时创建很多节点，打开界面时会很卡顿，因为需要频繁申请内存，而申请内存是很费时的操作，从而导致界面卡顿。而我们
+经常看到很多游戏在打开界面时，界面上的东西是慢慢展现出来的，而不是同时都出现，这其实是采用了分帧加载处理，所谓分帧加载，其实就是一帧一帧地加载，一帧加载
+几个节点，下一帧再加载几个节点。避开频繁加载节点，频繁申请内存！而界面上的表现效果就是：界面上的东西慢慢展现，而打开界面却不会卡顿了！！那么如果分帧加载？
+可以先封装个加载工具LoadDelay，LoadDelay继承cocos cc.Node，然后创建lua的协程coroutine,传入回调函数。再使用schedule.scheduleScript间隔n秒后唤醒协程
+当n为0时，则是一帧。代码如下
+
+local LoadDelay = class(...,cc.Node)
+
+function LoadDelay:ctor(params)
+	-- body
+	self.delaytime_ = params.delaytime_
+	self.callback_  = params.callback_
+
+end
+
+function LoadDelay:onEnter() --生命周期函数
+	-- body
+	local func = function()
+		-- body
+		if self.callback_ then
+			self.callback_()
+		end
+		if self.schedule_ then --协程执行之后要销毁定时器
+			 scheduler:unscheduleScriptEntry(self.schedule_)
+			 self.schedule_ = nil 
+		end
+
+	end
+
+	if self.coroutine_ == nil then --创建协程
+		self.coroutine_ = coroutine.create(func)
+	end
+
+	if self.schedule_ == nil then
+		self.schedule_ = scheduler:scheduleScriptFunc(self.resumeCoroutine,self.delaytime_, true)
+	end
+end
+
+function LoadDelay:resumeCoroutine()
+	-- body
+	if self.coroutine_ then
+		local  status,value = coroutine.resume(self.coroutine_) --唤醒协程
+		if status == false then --错误状态
+			if self.callback_ then
+				self.callback_()
+			end
+			if self.schedule_ then --协程执行之后要销毁定时器
+			 	scheduler:unscheduleScriptEntry(self.schedule_)
+			 	self.schedule_ = nil 
+			end
+		end
+	end
+end
+
+--外部调用延迟
+function LoadDelay:delay()
+	-- body
+	if self.coroutine_ then --挂起协程
+		coroutine.yield()
+	end
+end
+
+return LoadDelay
+
+
+---外部调用
+
+self.LoadDelay = require("LoadDelay”).new(0,callback)
+local callback = function（）
+  ---创建节点
+  for (i = 1;i<=10000;i++)
+     local node  = Node:create()--创建节点
+     if i%10 ==0 then --每创建10个调用延迟函数
+       self.LoadDelay:delay()
+     end
+  end
+end
+
