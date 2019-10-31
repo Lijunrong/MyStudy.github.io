@@ -5,21 +5,21 @@
 当n为0时，则是一帧。代码如下
 
 local LoadDelay = class(...,cc.Node)
-
-function LoadDelay:ctor(params)
+function LoadDelay:ctor(time,func,...)
 	-- body
-	self.delaytime_ = params.delaytime_
-	self.callback_  = params.callback_
-
+	self.delaytime_ = time
+	self.callback_  = func
+	self.params_ = {...}
+	self.isFinish_ = false
 end
-
 function LoadDelay:onEnter() --生命周期函数
 	-- body
 	local func = function()
 		-- body
 		if self.callback_ then
-			self.callback_()
+			self.callback_(unpack(self.params_))
 		end
+		self.isFinish_ = true
 		if self.schedule_ then --协程执行之后要销毁定时器
 			 scheduler:unscheduleScriptEntry(self.schedule_)
 			 self.schedule_ = nil 
@@ -35,23 +35,19 @@ function LoadDelay:onEnter() --生命周期函数
 		self.schedule_ = scheduler:scheduleScriptFunc(self.resumeCoroutine,self.delaytime_, true)
 	end
 end
-
 function LoadDelay:resumeCoroutine()
 	-- body
 	if self.coroutine_ then
 		local  status,value = coroutine.resume(self.coroutine_) --唤醒协程
 		if status == false then --错误状态
-			if self.callback_ then
-				self.callback_()
-			end
 			if self.schedule_ then --协程执行之后要销毁定时器
 			 	scheduler:unscheduleScriptEntry(self.schedule_)
 			 	self.schedule_ = nil 
 			end
+			self.coroutine_ = nil
 		end
 	end
 end
-
 --外部调用延迟
 function LoadDelay:delay()
 	-- body
@@ -60,7 +56,21 @@ function LoadDelay:delay()
 	end
 end
 
+function LoadDelay:onExit()
+	-- body
+	if self.schedule_ then
+		scheduler:unscheduleScriptEntry(self.schedule_)
+	end
+	self.coroutine_ = nil
+end
+function LoadDelay:isFinished( ... )
+	-- body
+	return self.isFinish_
+end
 return LoadDelay
+
+
+
 
 
 ---外部调用
