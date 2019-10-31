@@ -7,6 +7,7 @@
 local LoadDelay = class(...,cc.Node)
 function LoadDelay:ctor(time,func,...)
 	-- body
+	self:enableNodeEvents()
 	self.delaytime_ = time
 	self.callback_  = func
 	self.params_ = {...}
