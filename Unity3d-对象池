@@ -1,0 +1,78 @@
+：简述一下对象池，你觉得在FPS里哪些东西适合使用对象池？
+对象池就是用来存放对象的内存空间，当对象需要被反复创建和销毁时，可以使用对象池，把暂不需要使用的对象缓存起来，当需要使用时，查询对象池是否有该对象，有的话直接使用，没有则重新创建，
+
+例如游戏中的子弹，敌人，特效适合使用对象池
+
+
+对象池的使用：
+unity中用到大量重复的物体，例如发射的子弹，可以引入对象池来管理，优化内存。
+
+对象池使用的基本思路是：
+
+将用过的对象保存起来，等下一次需要这种对象的时候，再拿出来重复使用。恰当地使用对象池，可以在一定程度上减少频繁创建对象所造成的开销。
+
+并非所有对象都适合拿来池化――因为维护对象池也要造成一定开销。对生成时开销不大的对象进行池化，反而可能会出现“维护对象池的开销”大于“生成新对象的开销”，从而使性能降低的情况。
+
+GameObjectPool.cs如下
+复制代码
+
+using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+
+public class GameObjectPool : MonoBehaviour {
+    //单例模式
+    private static GameObjectPool instance;
+
+    public static GameObjectPool Instance
+    {
+        get { return GameObjectPool.instance; }
+        set { GameObjectPool.instance = value; }
+    }
+
+    private static Dictionary<string, ArrayList> pool = new Dictionary<string, ArrayList>{ };
+    // Use this for initialization
+    void Start ()
+    {
+        Instance = this;
+    }
+    public static Object Get(string prefabName, Vector3 position, Quaternion rotation)
+    {
+        string key = prefabName + "(Clone)";
+        Object o;
+       //池中存在，则从池中取出
+        if (pool.ContainsKey(key) && pool[key].Count>0)
+        {
+            ArrayList list=pool[key];
+            o=list[0] as Object;
+            list.Remove(o);
+            //重新初始化相关状态
+            (o as GameObject).SetActive(true);
+            (o as GameObject).transform.position = position;
+            (o as GameObject).transform.rotation = rotation;
+        }
+        //池中没有则实例化gameobejct
+        else
+        {
+            o = Instantiate(Resources.Load(prefabName),position,rotation);
+        }
+          return o;
+    }
+    
+
+    public static Object Return(GameObject o)
+    {
+        string key = o.name;
+        if (pool.ContainsKey(key))
+        {
+            ArrayList list=pool[key];
+            list.Add(o);
+        }
+        else
+        {
+            pool[key] = new ArrayList(){ o};
+        }
+        o.SetActive(false);
+        return o;
+    }
+}
