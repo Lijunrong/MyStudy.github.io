@@ -1,0 +1,22 @@
+/**/ 协程相关
+1 什么是协程？协程的作用，简单写个协程程序
+在主程序运行时，开启的一段逻辑辅助程序，协助当前程序的执行，协程作用：1，延迟一段时间后执行代码，2，等待某个操作执行后再执行之后的代码
+
+协程程序，在函数名前面加上关键字：IEnumerator 然后在程序中适当需要延迟执行的代码处加上yield return 语句，通过调用StartCoroutine语句来调用该协程函数
+
+例子：
+IEnumerator Text(){
+    for(int i =0;i<1;i++){
+	yield return null; //下一帧从这里开始执行后面的代码	
+    }
+}
+
+startCoroutine(Text);
+yield return null;//下一帧再执行后续代码
+yield return 0;//返回任何数字，---下一帧再执行后续代码
+yield break;//直接结束协程的后续逻辑
+yield return asyncOperation;//等待异步执行完毕后，再执行后续代码
+yield return StartCoroutine(协程函数);//等待这个协程函数执行完毕后，再执行后续操作
+yield return WWW();//等待WWW函数执行完毕后，再执行后续操作
+yield return new WaitForFrameEnd();//等待帧结束，再执行后续操作
+yield return new WaitForSeconds(0.5);//xx秒后执行后续操作
