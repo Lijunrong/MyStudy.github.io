@@ -1,0 +1,7 @@
+Unity MeshRender中material和sharedmaterial的区别
+
+使用material时，会在内存中生成新的material,引用之后，改变的是内存中新生成的这个material,而不会改变原有的材料属性
+
+sharedmaterial，使用了sharedmaterial，所有引用到该材质的物体都会受到该材质的变化而变化
+
+如果先使用了material材质，再使用sharedmaterial材质，不会发生因为sharedmaterial的改变而发生变化，因为此时内存生成了新了material材质
