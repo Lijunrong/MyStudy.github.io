@@ -1,0 +1,10 @@
+
+
+2  碰撞器和触发器的区别
+触发器只是碰撞器的一个属性，当碰撞器的属性，isTrigger为false时，碰撞器根据物理引擎触发碰撞，这时候会触发onCollitionEnter/Exit/Stay函数，如果当isTrigger属性为false时，此时的碰撞器不是根据物理引擎触发碰撞，没有
+物理碰撞效果，比如碰撞后的弹开效果，这时候会触发onTriggerEnter/Exit/Stay函数，当需要检测碰撞，又不希望碰撞会影响物体的运动状态或者是需要判断物体是否进入了某个区域时，则可以用trigger
+
+相关函数: onCollitionEnter,onCollitionExit，onCollitionStay函数，
+onCollitionEnter:  //碰撞器开始碰撞时触发
+onCollitionStay://碰撞器持续碰撞时触发
+onCollitionExit://碰撞器离开时触发
