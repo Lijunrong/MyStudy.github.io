@@ -1,0 +1,8 @@
+Unity提供了几种光源，分别是什么
+
+1 平行光源，Directional Light
+2 点光源 ，Point Light
+3 聚光源，Spot Light
+4 区域光源：Area Light
+
+
