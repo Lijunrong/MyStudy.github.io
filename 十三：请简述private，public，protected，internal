@@ -1,0 +1,9 @@
+十三：请简述private，public，protected，internal的区别
+
+public：对任何类和成员看公开，没有限制访问
+
+protected:对本类和派生类公开，
+
+private:仅仅对本类公开
+
+internal:对本类和包含本类的程序集公开
