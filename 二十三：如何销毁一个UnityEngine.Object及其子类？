@@ -1,0 +1,3 @@
+二十三：如何销毁一个UnityEngine.Object及其子类？
+
+调用Destroy函数销毁
