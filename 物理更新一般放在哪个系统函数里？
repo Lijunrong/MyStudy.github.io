@@ -1,0 +1,3 @@
+FixedUpdate，每固定帧绘制时执行一次，和Update不同的是FixedUpdate是渲染帧执行，
+如果你的渲染效率低下的时候FixedUpdate调用次数就会跟着下降。
+FixedUpdate比较适用于物理引擎的计算，因为是跟每帧渲染有关。Update就比较适合做控制。
