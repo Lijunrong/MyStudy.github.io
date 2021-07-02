@@ -1,0 +1,5 @@
+CharacterController和Rigidbody的区别
+ 
+CharacterController：角色控制器，是受限制的RightBody，具有一定的物理效果，但不是完全真实的，是unity为了开发者方便地开发第一人称视觉游戏而封装的组件
+
+Rightbody:刚体组件，具有完全真实的物理效果，unity物理系统中最基本的物理单位，包含了常用的物理特性
