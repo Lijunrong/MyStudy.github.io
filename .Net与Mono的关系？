@@ -1,0 +1,5 @@
+.Net与Mono的关系？？
+
+.Net与Mono的关系：mono是基于.net的跨平台工具，类似于Java虚拟机，java语言本身不跨平台，但是有了java虚拟机，就能实现跨平台，.net只能在windows上跑，
+
+mono可以实现跨平台，使程序能够在pc,ios，android等平台上跑
