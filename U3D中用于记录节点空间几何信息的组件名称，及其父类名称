@@ -1,0 +1,5 @@
+U3D中用于记录节点空间几何信息的组件名称，及其父类名称?
+
+记录节点空间几何信息的组件名称：Transform
+
+Transform父类：Component
