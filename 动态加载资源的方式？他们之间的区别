@@ -1,0 +1,5 @@
+Unity---动态加载资源的方式？他们之间的区别
+
+Resources.load();---将所有资源放在Resources目录下，打包时所有资源都会打包进去
+
+Assest bundle:将资源打包成 asset bundle 放在磁盘或者服务器，通过WWW模块 get下来，官网推荐此种方式，因为可以将资源拆成多个包
