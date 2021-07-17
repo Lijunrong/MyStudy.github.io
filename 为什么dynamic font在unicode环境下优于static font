@@ -1,0 +1,3 @@
+为什么dynamic font在unicode环境下优于static font
+
+unity不会预先生成所有字体的文理，所以字体的纹理会比较小，使用static font,字体纹理会比较大
