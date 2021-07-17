@@ -1,0 +1,15 @@
+不调用 c++/c 的字符串库函数，请编写函数 strcpy，2.解释为什么要返回char *
+
+char* strcpy(char* strdest,char* strsrc){
+  if(strdest==null||strsrc==null){
+    throw "Invalid string";
+  }
+  
+  char* strcopy = strdest;
+  
+  while((*strcopy++=*strsrc++)!='\0');
+  
+  return strcopy;
+}
+
+返回char *是为了实现链式表达式
