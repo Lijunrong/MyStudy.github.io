@@ -1,0 +1,11 @@
+简述StringBuilder和String的区别？
+
+String：是字符串常量
+
+StringBuffer:是字符串变量，线程安全
+
+StringBuilder:是字符串变量，线程不安全
+
+String:字符串常量，每次修改都会重新生成一个新的String对象，当在循环里面反复修改，会反复产生新对象，效率比较低
+
+StringBuilder:是在原来字符串上修改，不会产生新对象，效率比较高
