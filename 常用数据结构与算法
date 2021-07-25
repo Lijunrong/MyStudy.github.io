@@ -1,0 +1,139 @@
+排序算法：
+1 冒泡排序：两两比较，每一趟比较，将较小者升上去，第一次比较空间为0-（N-1），最后一次比较为0-1,时间复杂度为O(N*N)
+
+核心算法：
+int []a = [6,5 8,1,0,11];
+int temp = 0;
+for(int i =0;i<length-1;i++){  //总共length元素，所以比较length趟
+  for (int j = 0;j<length - i -1;j++){   //每一趟比较次数为length -i次
+    if（a[j]>a[j+1]）{
+       temp = a[j];
+       a[j] = a[j+1];
+       a[j+1] = temp;
+    }
+  }
+}
+
+经过每一趟比较，把最大值沉底，每趟比较次数L-i-1，因为i从0开始，所以要减去1，当i=0时，比较次数就是L-1; 最好的情况：0次 即序列是有序的，最坏的情况：逆序，次数 n*(n-1)/2;
+
+2 选择排序（O（N*N））：
+每趟比较，找到最小的值，然后跟每趟第一个元素交换位置，如：第一趟，比较N个数，找到最小值跟第一个交换位置，第二趟，从剩下的N-1个数找到最小值，并与第二个数交换位置，
+第N-1趟时，剩下两个数进行比较，较小的跟第N-1个交换位置：算法位置：
+int []a = [6,5,8,1,0,11];
+int min = 0;
+for(int i=0;i<L;i++){
+  min = i;
+  for(int j=i+1;j<l;J++){
+    if(a[j]<a[min]){
+      min = j;
+    }
+  }
+  
+  if(min!=i){
+    int temp = a[min];
+    a[min] = a[i];
+    temp = a[min];
+  }
+}
+
+3 插入排序:就是未排序的数据，在已排序的序列中找到对应位置插入，对应位置：就是第一个比当前元素大的元素位置后面，比如序列 3 5，插入元素4，那么4的位置就在3的后面，5的前面
+算法：
+for(int i = 0;i<L;i++){
+  for(int j= i;j>0;j--){
+    if(a[j]<a[j-1]){
+       int temp = a[j];
+       a[j] = a[j-1];
+       temp = a[j];
+    }else{
+      break;
+    }
+  }
+}
+
+插入排序：
+最好的情况，次数是n-1,序列有序，最坏的情况，序列逆序，次数:1+2+3...+n-1 = n*(n-1)/2，平均次数是最差的一半，所以时间复杂度为o(n*n)；
+
+
+
+O（N*logN）算法：归并排序，快速排序，堆排序，希尔排序
+快速排序：从待排序的序列中任取一个元素作为key，经过一段排序后，把所有小于key的元素放在key的左边，所有大于key的元素放到了右边，将序列分成了两个字表，最后将key值放在分界处的位置上
+然后，分别对左右子表进行重复操作，直到每个字表只有一个记录时，排序完成！
+
+void quickSort(int *arr,int begin,int end){
+  int low = begin;
+  int high = end;
+  int key = arr[0];
+  if(low>=end) {
+    return;
+  }
+  while(low<high){
+    while(low<high&&arr[high]>key){
+      high--;
+    }
+    arr[low] = arr[high];
+    while(low<high&&arr[low]<=key){
+      low++;
+    }
+    arr[high] = arr[low];
+  }
+  arr[i] = key;
+  quickSort(arr,begin,i-1);
+  quickSort(arr,i+1,end);
+}
+
+快速排序的平均时间是：O（n*log2N），最坏的情况：O(N*N)。
+
+归并排序：
+总的平均时间复杂度为O(nlogn)
+归并排序利用归并思想进行排序，采用分治策略,算法：
+
+void merge_sort(int*data,int start,int end,int*result){
+ if(end-start==2){
+  if(data[start]>data[end]){ //有两个元素，进行排序
+    int temp = data[start];
+    data[start] = data[end];
+    data[end] = temp;
+  }
+  return;
+ }else if(end-start==1){ //只有一个元素，直接返回
+   return;
+ }else{ //继续拆分
+    merge_sort(data,start,(end-start+1)/2+start,result);
+    merge_sort(data,(end-start+1)/2+start+1,end,result);
+    merge(data,start,end,result);
+ } 
+}
+
+void merge(int*data,int start,int end,int*result){
+  int left_index = start;
+  int left_length = (end-start+1)/2 +1;
+  int right_index = start + left_length;
+  int result_index = start;
+  while(left_index<start+ left_length &&right_index<end+1){
+    if(data[left_index]<=data[right_index]){
+      result[result_index++] = data[left_index];
+    }else{
+      result[result_index++] = data[right_index];
+    }
+  }
+  
+  while(left_index<start+left_length){
+    result[result_index++] = data[left_index++];
+  }
+  
+  while(right_index<end+1){
+    result[result_index++] = data[right_index++];
+  }
+  
+}
+
+
+堆排序：
+
+
+
+
+
+
+
+
