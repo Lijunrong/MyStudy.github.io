@@ -36,7 +36,7 @@ for(int i=0;i<L;i++){
   }
 }
 
-3 插入排序:就是未排序的数据，在已排序的序列中找到对应位置插入，对应位置：就是第一个比当前元素大的元素位置后面，比如序列 3 5，插入元素4，那么4的位置就在3的后面，5的前面
+3 插入排序:就是未排序的数据，在已排序的序列中找到对应位置插入，对应位置：就是第一个比当前元素小的元素位置后面，比如序列 3 5，插入元素4，那么4的位置就在3的后面，5的前面
 算法：
 for(int i = 0;i<L;i++){
   for(int j= i;j>0;j--){
@@ -127,8 +127,53 @@ void merge(int*data,int start,int end,int*result){
   
 }
 
+堆：
+堆是一种特殊的完全二叉树：每个根节点都大于等于左右子节点或者根节点小于等于左右子节点，同时根节点的左右子树也是堆，平均时间复杂度O(nLogn)
 
-堆排序：
+
+堆排序步骤：
+1 将序列构成一个堆，根据升序或者降序构成大顶堆，或者小顶堆；
+2 将堆首元素与堆尾元素交换，使得堆尾元素成为最大值；
+3 剩下的元素重新构建大顶堆，然后重新交换堆首元素与堆尾元素，如此反复。
+
+代码:
+#include<iostream>
+#include<vector>
+using namespace std;
+
+//length data的长度，index第一个非叶子结点的索引
+void adjust(vector<int>&data,int length,int index){
+  int left_child = 2*index +1;
+  int right_child = 2*index + 2;
+  int max_index = index;
+  if(left_child<length&&data[left_child]>data[max_index]){
+    max_index = left_child;
+  }else if(right_child<length&&data[right_child]>data[max_index]){
+    max_index = right_child;
+  }
+  
+  if(max_index!=index){
+    swap(data[max_index],data[index]);
+    adjust(data,length,max_index);
+  }
+}
+
+void heapSort(vector<int>&data,int size){
+
+  //构建大顶堆，从最后一个非叶子结点往上构建
+  for(int i = size/2-1;i>=0;i--){
+    adjust(data,size,i)
+  }
+  
+  for(int i=size-1;i>=1;i--){
+    swap(data[0],data[i]);//将最大元素放数组末尾
+    adjust(data,i,0);//剩下为排序的重新构建堆
+  }
+}
+
+
+
+希尔排序:
 
 
 
