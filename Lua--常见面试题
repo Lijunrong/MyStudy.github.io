@@ -1,0 +1,114 @@
+1 lua特性：
+1 轻量级：lua底层是c，编译后仅有100多k,非常轻量
+2 可拓展性强：lua提供了非常容易使用的扩展接口，由宿主语言（c或者c++）提供这些接口功能，然后lua可以调用这些接口，就好像内置的接口一样
+3 其它：支持面向过程与函数式编程（底层是c），一个table数据类型可以做数组，哈希表，对象等，非常便利，内存自动管理，使用引用计数机制，
+       lua 提供闭包，还提供了协程coroutine,通过闭包和table，可以模拟面向对象
+       
+       
+ 2 Lua数据类型：
+ Lua有8种基本数据类型：number,boolean,table，string,function,nil,userdata,thread（线程），lua定义变量时，不需要指定类型，local是局部变量，不带local则是全局变量
+ 
+ 3 pairs 和 ipairs区别
+ pairs,遍历table,返回所有的key和value，键可以为nil；
+ ipairs：遍历数组，遇到Nil时会退出，比如local arr = { [1]= 10,[3] = 111};而且Lua的下标从1开始，不是0开始
+ 
+ 4 Lua元表(Metatable)
+ Lua元表，可以让程序修改Lua一些行为，比如说，两个表相加，原本是没有这样的操作，但是通过lua元表可以改变table表行为，从而支持此操作
+ 每种行为关联的对应的元方法；当lua尝试对两个table进行相加时，会查找其中一个table是否存在元表，再检查是否存在__add字段，有就调用该字段的值，该字段对应的值就是
+ 一个元方法;然后还会调用到两个重要的函数：
+ setMetable(mytable,metatable)；//设置元表
+ getMetetable();//返回元表；
+ 
+当通过key去访问一个table时，lua会去查找它的metatabel,查找是否存在__index,如果这个__index字段包含一个表格，则在这个表格里查找该键是否存在
+
+Lua查找表元素的规则：
+1 查找该表是否有该元素，有返回，没有，继续查找：
+2 查找该表是否有元表，有继续查找，没有返回nil;
+3 判断元表有没有__index字段，没有返回nil，如果__index对应的值是一个函数，则返回函数的返回值，如果是一个表，则继续步骤1,2,3。
+
+__index 是lua的一个元方法，用来访问lua的元表，保存的是lua的元表，也可以是一个函数
+
+__newindex:用来对表进行更新处理，
+
+实现两个表相加：
+local Set = {}
+local mt = {}
+funticon Set.new(value)
+  local new = {}
+  setmetatabel(new,mt)
+  for i,v in ipairs(value) do
+    new[i] = v
+  end
+  return new
+end
+
+funtion Set.Add(valueA,valueB)
+  local t = {}
+  for i,v in ipairs(valueA) do
+     t[i] = valueA[i] + valueB[i]
+  end
+  return t
+end
+
+mt.__add = Set.Add
+local t1 = Set.new({1,2,3})
+local t2 = Set.new({3,4,5})
+Set.add(t1,t2)
+
+
+Lua闭包：
+通过调用一个含有内部函数以及外部函数局部变量的函数所产生的实例函数，就是Lua闭包
+条件：外部函数+外部函数的局部变量+内部函数
+
+local fuuntion text()
+  local i = 0;
+  return function()
+      return i++;
+  end
+end
+
+local a = text()
+local b = text()
+print(a())
+print(b())
+
+
+lua 与c++的相互调用：
+1 lua 与c++调用通过一个虚拟堆栈执行
+2 c++调用lua过程：c++把数据放入栈中，Lua从栈里面取数据，执行逻辑后把结果入栈，再由栈返回给c++；
+3 lua调用c++:先编写c模块，然后注册函数到lua解释器，然后由lua去调用这个函数！
+
+参考学习资料：https://www.cnblogs.com/sevenyuan/p/4511808.html
+
+
+Lua 热更新的原理：参考学习资料：https://blog.csdn.net/xufeng0991/article/details/52473602 
+lua调用require(模块)加载模块时，会把一个lua文件加载放到packege.load[modulename];
+当我们加载一个模块时，会先判断模块是否在package.load中，如果存在则返回，不存在才会加载；
+
+lua 热更新操作：
+最简单的就是把package.loade[模块名] = nil;强制重新加载，但是有问题，已经引用到该模块的地方，不会得到更新，需要将引用该模块的地方
+也同步更新：
+function reload_module(moduleName) 
+   local old_module = _G[moduleName];
+   package.load[moduleName] = nil
+   require(moduleName)
+   local new_module = _G[moduleName]
+   for k,v in pairs(new_module) do
+      old_module[k] = v
+   end
+   
+   package.loaded[moduleName] = old_module
+   
+end
+
+
+
+ 
+什么是协同(coroutine)？
+Lua 协同程序(coroutine)与线程比较类似：拥有独立的堆栈，独立的局部变量，独立的指令指针，同时又与其它协同程序共享全局变量和其它大部分东西。
+协同是非常强大的功能，但是用起来也很复杂。
+线程和协同程序区别
+
+线程与协同程序的主要区别在于，一个具有多个线程的程序可以同时运行几个线程，而协同程序却需要彼此协作的运行。
+在任一指定时刻只有一个协同程序在运行，并且这个正在运行的协同程序只有在明确的被要求挂起的时候才会被挂起。
+协同程序有点类似同步的多线程，在等待同一个线程锁的几个线程有点类似协同。
