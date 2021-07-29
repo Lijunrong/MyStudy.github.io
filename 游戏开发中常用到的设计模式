@@ -1,0 +1,42 @@
+1 观察者模式：
+它将对象与对象之间创建关联关系，当其中一个对象发生变化，其它的对象能及时知道，并做出相应处理
+举例子：如有A,B,C,D四个对象，其中，B,C,D都想知道A时刻发生了什么，对A进行了观察，当A发生了任何变化，B,C,D都能马上知道，并做出相应处理，这就是观察者模式
+应用：比如本地广播事件：观察者注册监听器--》被观察者派发广播--》观察者收到广播，并处理；
+UI控件管理类：当我们的GUI控件都使用了观察者模式后，用户的任何操作，都会通知它关联的对象---UI事件机制
+
+
+2 单例模式：
+单例模式就是一个类有且仅有一个实例对象
+单例的使用地方：例如cocos 的Director,SpriteFrameCahce,unity:SoundManager,工厂基类
+Class Singleton
+{
+       Static MySingleton;                           // 单件对象，全局唯一的。
+       Static Instance(){ return MySingleton;}       // 对外暴露接口
+}
+
+
+3 工厂模式：
+工厂模式是为了解决解耦问题，当我们用new()去创建对象时，如果需要换类，就需要在所有new()地方去修改，非常麻烦，可以用一个接口，
+根据传入的参数，去创建不同的对象，比如：根据水果类型去创建不同的水果对象：
+public class FruitFactory {
+  public Fruit createFruit(fruitType){
+    //根据水果类型去创建不同的对象
+  }
+}
+
+FruitFactory factory = new FruitFactory();
+factory,createFruit("Apple");
+factory.createFruit("Bananle");
+
+适用于类型比较少的情况下，用法：cocos里面精灵创建：cc.Sprite.create(参数)；
+
+抽象工厂模式：
+抽象工厂分装一个接口，这个接口负责创建一系列相互关联的对象，用户在使用接口时不需要指定对象所属的类型，用于批量生产：例子：
+如音频工厂，音频工厂又能派生出音效工厂，音乐工厂
+
+
+
+
+
+
+
