@@ -241,6 +241,58 @@ void Prim(int length){
 时间复杂度O(N*N)
 
 
+迪杰斯特拉算法求最短路径：
+算法核心思想：
+1将顶点集合N分成两个集合，一个集合U:存储已经确定了最短路径的顶点，2集合T = N - U，表示还未确定最短路径的顶点集合
+算法按各个顶点到源顶点V0的最短路径长度按照递增的次序，逐个将集合T中的顶点加入到集合U中，并且始终保持从V0到集合S中其它顶点
+的路径长度始终小于等于到集合T中各顶点的路径长度。需要几个辅助的数组：
+bool S[]:表示从V0到终点Vi已经确定了最短路径，初始值：都是false，S[v0]为true;
+int Path[]:表示从V0到终点Vi的最短路径上顶点vi的前驱顶点，初始值：如果v0到vi有路径，则Path[i] = v0，如果没有路径，则Path[i] = -1;
+int D[];表示从V0到顶点vi的最短路径长度，初始值：v0->vi边的值，
+int G[][]:表示图的各边的权值
+
+#define MAXINT 9999999
+算法核心代码：
+void Short_DJ(int length,int v0){
+  //初始化操作
+  for(int v=0;v<length;v++){
+    S[v] = false;
+    D[v] = G[v0][v];
+    if(D[v]<MAXINT) {
+      path[v] = v0;
+    }else{
+      Path[v] = -1;//不存在前驱节点
+    }
+  }
+  
+  s[v0] = true;
+  D[v0] = 0;
+  for(int v=1;v<length;v++){ //将剩下的n-1个点查找最短路径
+    int min = MAXINT;
+    int curIndex = v0;
+    //寻找当前的最端路径，遍历n个顶点，不在S中并且路径长度小于min
+    for(int w = 0;w<length;w++){
+      if(!s[w]&&D[w]<min){
+        min = D[w];
+        curIndex = w;
+      }
+      
+      S[curIndex] = true;
+      //加入了新顶点，对第二组剩余的各个顶点而言，多了一个中转顶点，从而多了一条中转路径，所以要对第二组剩余的各个顶点的最短路径长度进行更新
+      for(int n = 0;n<length;n++){
+        if(!S[n]&&D[curIndex]+G[curIndex][n]<D[n]){
+          D[n] = D[curIndex] + G[curIndex][n];
+          Path[n] = curIndex;
+        }
+      }
+    }
+  }
+}
+
+时间复杂度：O（n*n）
+
+
+A*寻路算法：
 
 
 
