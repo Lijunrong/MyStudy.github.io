@@ -293,8 +293,85 @@ void Short_DJ(int length,int v0){
 
 
 A*寻路算法：
+核心思路：
+给每个点或者说格子加一个优先值F：F = H + G,H定义为预测值：就是当前格子到达目标点的距离值，G：定义为耗费值，就是父节点到达该节点的距离值。
+思路：
+1 定义一个openList数据结构，用来保存可以搜索的格子
+2 定义一个closeList数据结构，用来保存已经访问过的格子
+过程：
+1 首先将起始点加入openList中，然后遍历openList，取出openList中F值最小的格子，此时OpenList只有起始点
+2 从openList移除取出来的格子，同时加入到closeList中，
+3 判断当前格子周围8个格子，是否在clostList中，如果不在，分别计算他们的F值，同时要设置他们的父节点为当前格子，同时加入openList中
+4 循环遍历openList，反复执行上面的操作。
 
+伪代码：
+Vector<Point*> openList = new Vector<Point*>();
+bool closeList[][];
+int direction[8][2] = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];
+typedef struct Point {
+  int x=0,y=0;
+  Point* father = null;
+  int F = 0;
+  Point(){
+  
+  }
+  Point(int pointX,int pointY,int endX,int endY,Point* fatherPoint){
+    this.x = pointX;
+    this.y = pointY;
+    this.F = math.abs(endX-this.x) + math.abs(endY-this.y) + math.abs(fatherPoint->x - this.x) + math.abs(fatherPoint->y - this.y);
+    this.father = fatherPoint;
+  }
+  
+}
 
+void FindSmallestF(){
+  if(openList.empty()){
+    return null;
+  }
+  Point* curPoint = openList.front();
+  int count = openList.size();
+  for (int i = 0; i < count;i++)
+  {
+      if(openList[i].F<curPoint.F){
+        curPoint = openList[i];
+      }
+  }
+  return curPoint;
+}
+void fineWay(Point*startPoint,Point* endPoint){
+  std::List<Point*>road;
+  openList.pushback(startPoint);
+  Point* parent = null;
+  while(!openList.empty()){
+    parent = FindSmallestF();
+    openList.pop();
+    clostList[parent.x][parent.y] = true;
+    for(int i = 0;i<8;i++){
+      int pointX = parant.x + direction[i][0];
+      int pointY = parent.y + direction[i][1];
+      Point* point = new Point(poinX,pointY,endPoint.x,endPoint.y,parent);
+      if(!closeList[pointX][pointY]){
+        openList.pushback(point);
+      }
+    }
+  }
+  
+  road.push_back(Parent);
+  while(true){
+    Point* prePoint = parent->father;
+    if(prePoint){
+      road.push_back(prePoint);
+    }else{
+      break;
+    }
+  }
+  return road;
+}
+
+A*算法优化思路：
+1 openList使用优先队列作为容器，优先队列插入和查找元素时间复杂度是O（logN）;
+2 closeList使用二维数组存储，这样访问效率高
+3 使用深度限制策略，即搜索到一定的深度，还没找到元素，即终止搜索
 
 
 
