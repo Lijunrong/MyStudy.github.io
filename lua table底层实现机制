@@ -1,0 +1,80 @@
+Lua table底层实现：
+
+table 每个节点都是结构体形式：Struct Node {
+   TValue value;
+   TKey key;
+}
+
+每个节点都有两个数据，一个是保存value值的TValue,Tkey是保存key值的联合体结构：
+typedef union Tkey {
+  struct{
+    int next; //用于标记下一个节点
+  }
+  TValue value;
+}
+
+table 的结构，也是一个结构体：
+
+Stuct Tabel {
+  
+  Node* node;
+  Node* lastfree;
+  Tvalue *array;
+  int size;
+}
+
+
+所以，tabel 的底层是采用数组+哈希表的两部分构成：
+
+table 在查找某个key值，会去lua_getKey(key)进行查找，在这个lua_getKey()函数中，会去判断key的类型，然后执行相应的查找函数，比如number: lua_getInt()
+
+lua_getint函数查找流程：
+
+会先判断key值是否在数组大小范围内，存在，则返回它的value值；
+
+如果不在数组里面，则会对整形key进行哈希处理，获取他的哈希值，然后在哈希表进行查找
+
+然后table的哈希表是结合了开放地址法 + 连地址法来着，内部用到了一个lastfree的 Node类型指针，用于定位，内部有个函数叫mainposition的用于计算节点位置。
+
+
+
+正因为lua这样的内部结构，导致获取table长度，也就是lua_getn的时候，比较复杂，不是直接拿去数组部分的长度，而是获取整形key连续长度，如果中间有中断，获取的长度
+还是不确定，比如说，中间空了两个元素，那么获取的长度是前面元素个数，如果中间只空了一个，那么获取到的最后元素的key值，如果table是作为数组使用，获取的长度就是实际
+元素的个数，举个例子
+
+local table A = {[1] = 10,[2] = 10,[4] = 1,[5] = 100,[6] = 1000}
+这个时候获取的长度是6
+
+local table B = {[1] = 100,[2] = 300,[5] = 111,[6] = 10000}
+
+这个时候获取的长度是2
+
+因为table在获取长度时候，会进行这样判断：
+
+table[key] != nil
+
+table[key+1] == nil
+
+一旦找到满足条件的key，那么table的长度就是key值。
+
+
+Tabel rehash过程:
+1 计算数组部分长度
+2 计算哈希表的长度
+3 计算插入key后数组部分的长度
+4 计算一个新的数组部分，需要的内存大小
+5 重新resize。
+
+使用 table时候要注意rehash问题，比如能够在声明table时候先初始化，就先初始化，比如知道table有几个元素，我们可以这样声明table 
+比如有三个元素：
+local tabelA = {nil,nil,nil}，然后再进行赋值，这样可以避免rehash，提高效率
+
+
+
+
+
+
+
+
+
+
