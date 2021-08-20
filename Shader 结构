@@ -1,0 +1,53 @@
+Shader 介绍：
+
+1 shader 语言：
+
+openGL: 跨平台，GLSL
+
+DX:微软开发，非跨平台，性能非常好，HLSL:High Level Shader Language
+
+CG:微软和英伟达公司，跨平台 基于C语言
+
+
+2 unity shader 语言：
+GLSL:opengl Shader Language。
+
+GLSLPROGRAM ... ENDGLSL语法结构
+
+unity3d语言：shader lab
+
+
+
+3 shader分类:
+
+1 fixed shader: 开关式
+2 顶点片段着色器：功能里面的公式可以自定义
+3 表面着色器，surface shader：
+
+
+4  shader结构：
+
+Shader 着色器名字 {
+  Propertys:[
+  
+  ]
+  
+  //子着色器，可以定义多个子着色器，按照顺序，如果第一个不能正常执行，则执行第二个，如果都不能执行，则执行回调Fallback
+  //对应一个显卡
+  SubShader:{
+    //每个Pass就是定义一个显卡
+    //每一个Pass会渲染一次
+    Pass
+    {
+    
+    },
+  }
+  
+  Fallback:"difuse",
+  
+  
+}
+
+
+
+
