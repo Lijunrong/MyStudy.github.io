@@ -51,3 +51,12 @@ Shader 着色器名字 {
 
 
 
+Shader:类型：int float,Vector ,Range,Texture,Color,3D纹理。
+
+
+
+
+
+
+
+
