@@ -76,9 +76,9 @@ void quickSort(int *arr,int begin,int end){
     }
     arr[high] = arr[low];
   }
-  arr[i] = key;
-  quickSort(arr,begin,i-1);
-  quickSort(arr,i+1,end);
+  arr[low] = key;
+  quickSort(arr,begin,low-1);
+  quickSort(arr,low+1,end);
 }
 
 快速排序的平均时间是：O（n*log2N），最坏的情况：O(N*N)。
